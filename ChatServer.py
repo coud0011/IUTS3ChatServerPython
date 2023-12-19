@@ -51,7 +51,7 @@ class Server:
         if request.startswith("/"):
             message = request.partition(' ')
             if message[0] in self.client_commands.keys():
-                self.client_commands[message[0]](message)
+                self.client_commands[message[0]](message, sender)
         else:
             await self.broadcast(message=request, sender=sender)
 
@@ -61,16 +61,22 @@ class Server:
         for elt in self.clients.keys():
             await self.write(message, elt)
 
-    async def alias(self):
-        pass
+    async def alias(self, message, sender):
+        await self.write("#alias "+message[2], sender.alias)
+        await self.broadcast("#renamed "+sender.alias+' '+message[2], sender.alias)
+        self.clients.pop(sender.alias)
+        self.clients[message[2]]=sender
 
-    async def clients_list(self):
-        pass
+    async def clients_list(self, message, sender):
+        await self.write(message, sender.alias)
 
-    async def private_message(self):
-        pass
+    async def private_message(self, message, sender):
+        reciev, sep, send = message[2].partition
+        if reciev not in self.clients.keys():
+            await self.write('#error invalid_recipient', sender.alias)
 
-    async def quit(self):
+
+    async def quit(self, message, sender):
         pass
 
 
